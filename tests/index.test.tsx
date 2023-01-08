@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { act } from 'react-dom/test-utils'
-import { init as _init, setData, createReducer, State, UseReducerParams, getNode, getState, getRoot, genUUID, Thunk } from '../src/index'
+import { init as _init, setData, createReducer, State, UseReducerParams, getNode, getState, getRoot, genUUID, Thunk, getRootID } from '../src/index'
 import { useReducer, getRootNode } from '../src/index'
 
 const mockuuidv4 = jest.fn(() => '123')
@@ -90,24 +90,22 @@ it('example in README.md', () => {
         }, [])
 
         let increment_q = getRootNode(stateIncrement)
-
         if (!increment_q) {
-            return (<div></div>)
+            return (<div style={{ display: 'none' }}></div>)
         }
+        let myID = getRootID(stateIncrement)
+
         let increment = increment_q
 
-        let increment2_q = getRoot(stateIncrement)
-        if (!increment2_q) {
-            return (<div></div>)
-        }
+        let increment2_q = getRoot(stateIncrement) || DoIncrement.defaultState!()
         let increment2 = increment2_q
 
         return (
             <div>
                 <p>count: {increment.state.count}</p>
                 <p>count: {increment2.count}</p>
-                <button onClick={() => doIncrement.increment(increment.id)}></button>
-                <button onClick={() => doIncrement.increment2(increment.id)}></button>
+                <button onClick={() => doIncrement.increment(myID)}></button>
+                <button onClick={() => doIncrement.increment2(myID)}></button>
             </div>
         )
     }

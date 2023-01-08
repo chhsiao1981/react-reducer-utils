@@ -71,8 +71,9 @@ type NodeStateRelative = { [relativeClass: string]: { list: string[], do: Dispat
 // UseReducerParams
 export type UseReducerParams<S extends State> = {
     default: Reducer<S>
+    defaultState?: () => S
     myClass: string
-    [key: string]: ActionFunc<S> | Reducer<S> | string
+    [key: string]: ActionFunc<S> | Reducer<S> | (() => S) | string | undefined
 }
 
 // GetClassState
@@ -102,7 +103,7 @@ export const useReducer = <S extends State>(theDo: UseReducerParams<S>): [ClassS
     const [state, dispatch] = useThunkReducer<ClassState<S>, Action<S>>(theDo.default, { myClass, doMe: currentDispatched, nodes })
 
     Object.keys(theDo)
-        .filter((each) => each !== 'default' && each !== 'myClass')
+        .filter((each) => each !== 'default' && each !== 'defaultState' && each !== 'myClass')
         .reduce((val, each) => {
             // @ts-ignore because default and myClass are already filtered, the rest are ActionFunc<S>
             let action: ActionFunc<S> = theDo[each]
