@@ -88,8 +88,8 @@ interface NodeStateRelative {
 
 // UseReducerParams
 export interface ReducerModule<S extends State> {
-  default: Reducer<S>
   myClass: string
+  default?: Reducer<S>
   defaultState?: S
   [key: string]: ActionFunc<S> | Reducer<S> | string | S | undefined
 }
@@ -112,11 +112,22 @@ export const useReducer = <S extends State>(theDo: ReducerModule<S>): [ClassStat
   const refDispatchMapByClass: RefDispatchFuncMapByClassMap = useRef({})
   const dispatchMapByClass = refDispatchMapByClass.current
   const { myClass } = theDo
+
+  // It requires shared nodes for the same class to have the same dispatchMap.
+  // We don't optimize the dispatchMap in this PR.
   if (!dispatchMapByClass[myClass]) {
     dispatchMapByClass[myClass] = {}
   }
   const dispatchMap = dispatchMapByClass[myClass]
   const nodes: NodeStateMap<S> = {}
+
+  // ensure that theDo.default exists.
+  //
+  // Because reducer is required to be singleton,
+  // We don't do createReducer() every time in this function.
+  if (!theDo.default) {
+    theDo.default = createReducer()
+  }
 
   const [state, dispatch] = useThunkReducer(theDo.default, {
     myClass,

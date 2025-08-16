@@ -25,44 +25,42 @@ Starting from `5.0.1`, this library supports only [typescript](https://www.types
 
 Reducer able to do increment (reducers/increment.ts):
 
-```typescript
+```ts
 import { init as _init, setData, createReducer, Thunk, getState, type State, genUUID } from 'react-reducer-utils'
 
 export const myClass = 'demo/Increment'
 
 export interface Increment extends State {
-    count: number
+  count: number
 }
 
 export const defaultState: Increment = {
-    count: 0
+  count: 0
 }
 
 export const init = (): Thunk<Increment> => {
-    const myID = genUUID()
-    return async (dispatch, getClassState) => {
-    dispatch(_init(myID, defaultState))
-    }
+  const myID = genUUID()
+  return async (dispatch, getClassState) => {
+    dispatch(_init({myID, state: defaultState}))
+  }
 }
 
 export const increment = (myID: string): Thunk<Increment> => {
-    return async (dispatch, getClassState) => {
+  return async (dispatch, getClassState) => {
     let classState = getClassState()
     let me = getState(classState, myID)
     if(!me) {
-        return
+      return
     }
 
     dispatch(setData(myID, { count: me.count + 1 }))
-    }
+  }
 }
-
-export default createReducer()
 ```
 
-App.ts:
+App.tsx:
 
-```typescript
+```tsx
 import * as DoIncrement from './reducers/increment'
 import type { Increment } from './reducers/increment'
 import { useReducer, getRoot } from 'react-reducer-utils'
@@ -72,37 +70,37 @@ type Props = {
 }
 
 export default (props: Props) => {
-    const [stateIncrement, doIncrement] = useReducer<Increment>(DoIncrement)
+  const [stateIncrement, doIncrement] = useReducer<Increment>(DoIncrement)
 
-    //init
-    useEffect(() => {
+  //init
+  useEffect(() => {
     doIncrement.init()
-    }, [])
+  }, [])
 
-    // to render
-    let incrementID = getRootID(stateIncrement)
-    let increment = getRoot(stateIncrement)
-    if(!increment) {
+  // to render
+  let incrementID = getRootID(stateIncrement)
+  let increment = getRoot(stateIncrement)
+  if(!increment) {
     return (<div></div>)
-    }
+  }
 
-    return (
+  return (
     <div>
-        <p>count: {increment.count}</p>
-        <button onClick={() => doIncrement.increment(incrementID)}>increase</button>
+      <p>count: {increment.count}</p>
+      <button onClick={() => doIncrement.increment(incrementID)}>increase</button>
     </div>
-    )
+  )
 }
 ```
 
 ### Must Included in a Reducer
 
-```typescript
+```ts
+// reducer class name.
 export const myClass = ""
-export default createReducer()
 
+// state definition of the reducer.
 export interface <T> extends State {
-    count: number
 }
 ```
 
@@ -127,203 +125,203 @@ with the following features:
 
 For example, the example [in the redux link](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) is represented as:
 
-```typescript
+```ts
 statePost = {
-    myClass: 'post',
-    doMe: (DispatchedAction<Post>),
-    nodes: {
-        [uuid-post1] : {
-            id: uuid-post1,
-            state: {
-                author : uuid-user1,
-                body : "......",
-            },
-            _parent: {
-                id: uuid-user1,
-                do: doUser
-            },
-            _links: {
-                comment : {
-                    list: [uuid-comment1, uuid-comment2],
-                    do: doComment
-                }
-            }
-        },
-        [uuid-post2] : {
-            id : uuid-post2,
-            state: {
-                author : uuid-user2,
-                body : "......",
-            },
-            _parent: {
-                id: uuid-user2,
-                do: doUser
-            },
-            _links: {
-                comment : {
-                    list: [uuid-comment3, uuid-comment4, uuid-comment5],
-                    do: doComment
-                }
-            }
+  myClass: 'post',
+  doMe: (DispatchedAction<Post>),
+  nodes: {
+    [uuid-post1] : {
+      id: uuid-post1,
+      state: {
+        author : uuid-user1,
+        body : "......",
+      },
+      _parent: {
+        id: uuid-user1,
+        do: doUser
+      },
+      _links: {
+        comment : {
+          list: [uuid-comment1, uuid-comment2],
+          do: doComment
         }
+      }
+    },
+    [uuid-post2] : {
+      id : uuid-post2,
+      state: {
+        author : uuid-user2,
+        body : "......",
+      },
+      _parent: {
+        id: uuid-user2,
+        do: doUser
+      },
+      _links: {
+        comment : {
+          list: [uuid-comment3, uuid-comment4, uuid-comment5],
+          do: doComment
+        }
+      }
     }
+  }
 }
 ```
 
 and:
 
-```typescript
+```ts
 stateComment = {
-    myClass: 'comment',
-    doMe: (DispatchedAction<Comment>),
-    nodes: {
-        [uuid-comment1] : {
-            id: uuid-comment1,
-            state: {
-                author : uuid-user2,
-                comment : ".....",
-            },
-            _parent: {
-                id: uuid-user2,
-                do: doUser
-            },
-            _links: {
-                post: {
-                    list: [uuid-post1],
-                    do: doPost
-                }
-            }
-        },
-        [uuid-comment2] : {
-            id : uuid-comment2,
-            state: {
-                author : uuid-user3,
-                comment : ".....",
-            },
-            _parent: {
-                id: uuid-user3,
-                do: doUser
-            },
-            _links: {
-                post: {
-                    list: [uuid-post1],
-                    do: doPost
-                }
-            }
-        },
-        [uuid-comment3] : {
-            id : uuid-comment3,
-            state: {
-                author : uuid-user3,
-                comment : ".....",
-            },
-            _parent: {
-                id: uuid-user3,
-                do: doUser
-            },
-            _links: {
-                post: {
-                    list: [uuid-post2],
-                    do: doPost
-                }
-            }
-        },
-        [uuid-comment4] : {
-            id : uuid-comment4,
-            state: {
-                author : uuid-user1,
-                comment : ".....",
-            },
-            _parent: {
-                id: uuid-user1,
-                do: doUser
-            },
-            _links: {
-                post: {
-                    list: [uuid-post2],
-                    do: doPost
-                }
-            }
-        },
-        [uuid-comment5] : {
-            id : uuid-comment5,
-            state: {
-                author : uuid-user3,
-                comment : ".....",
-            },
-            _parent: {
-                id: uuid-user3,
-                do: doUser
-            },
-            _links: {
-                post: {
-                    list: [uuid-post2],
-                    do: doPost
-                }
-            }
-        },
-    }
+  myClass: 'comment',
+  doMe: (DispatchedAction<Comment>),
+  nodes: {
+    [uuid-comment1] : {
+      id: uuid-comment1,
+      state: {
+        author : uuid-user2,
+        comment : ".....",
+      },
+      _parent: {
+        id: uuid-user2,
+        do: doUser
+      },
+      _links: {
+        post: {
+          list: [uuid-post1],
+          do: doPost
+        }
+      }
+    },
+    [uuid-comment2] : {
+      id : uuid-comment2,
+      state: {
+        author : uuid-user3,
+        comment : ".....",
+      },
+      _parent: {
+        id: uuid-user3,
+        do: doUser
+      },
+      _links: {
+        post: {
+          list: [uuid-post1],
+          do: doPost
+        }
+      }
+    },
+    [uuid-comment3] : {
+      id : uuid-comment3,
+      state: {
+        author : uuid-user3,
+        comment : ".....",
+      },
+      _parent: {
+        id: uuid-user3,
+        do: doUser
+      },
+      _links: {
+        post: {
+          list: [uuid-post2],
+          do: doPost
+        }
+      }
+    },
+    [uuid-comment4] : {
+      id : uuid-comment4,
+      state: {
+        author : uuid-user1,
+        comment : ".....",
+      },
+      _parent: {
+        id: uuid-user1,
+        do: doUser
+      },
+      _links: {
+        post: {
+          list: [uuid-post2],
+          do: doPost
+        }
+      }
+    },
+    [uuid-comment5] : {
+      id : uuid-comment5,
+      state: {
+        author : uuid-user3,
+        comment : ".....",
+      },
+      _parent: {
+        id: uuid-user3,
+        do: doUser
+      },
+      _links: {
+        post: {
+          list: [uuid-post2],
+          do: doPost
+        }
+      }
+    },
+  }
 }
 ```
 
 and:
-```typescript
+```ts
 stateUser = {
-    myClass: 'user',
-    doMe: (DispatchedAction<User>),
-    nodes: {
-        [uuid-user1] : {
-            id: uuid-user1,
-            state: {
-                username : "user1",
-                name : "User 1",
-            },
-            _children: {
-                post: {
-                    list: [uuid-post1],
-                    do: doPost,
-                },
-                comment: {
-                    list: [uuid-comment4],
-                    do: doComment,
-                }
-            }
+  myClass: 'user',
+  doMe: (DispatchedAction<User>),
+  nodes: {
+    [uuid-user1] : {
+      id: uuid-user1,
+      state: {
+        username : "user1",
+        name : "User 1",
+      },
+      _children: {
+        post: {
+          list: [uuid-post1],
+          do: doPost,
         },
-        [uuid-user2] : {
-            id: uuid-user2,
-            state: {
-                username : "user2",
-                name : "User 2",
-            },
-            _children: {
-                post: {
-                    list: [uuid-post2],
-                    do: doPost,
-                },
-                comment: {
-                    list: [uuid-comment1],
-                    do: doComment,
-                }
-            }
-        },
-        [uuid-user3] : {
-            id: uuid-user3,
-            state: {
-                username : "user3",
-                name : "User 3",
-            },
-            _children: {
-                post: {
-                    list: [uuid-post1],
-                    do: doPost,
-                },
-                comment: {
-                    list: [uuid-comment2, uuid-comment3, uuid-comment5],
-                    do: doComment,
-                }
-            }
+        comment: {
+          list: [uuid-comment4],
+          do: doComment,
         }
+      }
+    },
+    [uuid-user2] : {
+      id: uuid-user2,
+      state: {
+        username : "user2",
+        name : "User 2",
+      },
+      _children: {
+        post: {
+          list: [uuid-post2],
+          do: doPost,
+        },
+        comment: {
+          list: [uuid-comment1],
+          do: doComment,
+        }
+      }
+    },
+    [uuid-user3] : {
+      id: uuid-user3,
+      state: {
+        username : "user3",
+        name : "User 3",
+      },
+      _children: {
+        post: {
+          list: [uuid-post1],
+          do: doPost,
+        },
+        comment: {
+          list: [uuid-comment2, uuid-comment3, uuid-comment5],
+          do: doComment,
+        }
+      }
     }
+  }
 }
 ```
 
